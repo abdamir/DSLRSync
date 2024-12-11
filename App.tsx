@@ -21,7 +21,21 @@ const WifiScanner = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(body),
+      body: body,
+    })
+      .then(response => {
+        console.log('Response Object:', response); // Log the entire response object
+        return response.json(); // Proceed to parse JSON if needed
+      })
+      .then(json => console.log('Parsed JSON:', json))
+      .catch(error => console.error('Error:', error));
+  };
+  const sendGETRequest = (url: any, method: any) => {
+    fetch(url, {
+      method: method,
+      headers: {
+        'Content-Type': 'application/json',
+      },
     })
       .then(response => response.json())
       .then(json => console.log(json))
@@ -151,6 +165,25 @@ const WifiScanner = () => {
         onPress={() => {
           console.log('here');
           StartUDPConnection();
+        }}
+      />
+      <Button
+        title={'send jason request to camera'}
+        onPress={() => {
+          const body = {
+            method: 'getSchemeList',
+            params: [],
+            id: 1,
+            version: '1.0',
+          };
+          let b = JSON.stringify(body);
+          sendRequest('http://192.168.122.1:8080/sony/avContent', 'POST', b);
+        }}
+      />
+      <Button
+        title={'send details jason request to camera'}
+        onPress={() => {
+          sendGETRequest('http://192.168.122.1:8080/sony/guide', 'GET');
         }}
       />
     </View>
