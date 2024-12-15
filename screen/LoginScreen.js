@@ -10,7 +10,7 @@ const LoginScreen = () => {
   const handleLogin = () => {
     if (email && password) {
       // Simulate successful login and navigate to the Welcome screen
-      navigation.navigate('Welcome');
+      navigation.navigate('WifiScanner');
     } else {
       Alert.alert('Error', 'Please enter both email and password.');
     }
