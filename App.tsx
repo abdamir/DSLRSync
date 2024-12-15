@@ -11,6 +11,8 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import WifiManager from 'react-native-wifi-reborn';
+import {NetworkInfo} from 'react-native-network-info';
+import connectToCamera from './utils/PTP';
 
 const WifiScanner = () => {
   //const [wifiList, setWifiList] = useState([]);
@@ -65,6 +67,20 @@ const WifiScanner = () => {
       console.warn(err);
     }
   };
+  const requestPermissions3 = async () => {
+    try {
+      const granted = await PermissionsAndroid.request(
+        PermissionsAndroid.PERMISSIONS.ACCESS_NETWORK_STATE,
+      );
+      if (granted === PermissionsAndroid.RESULTS.GRANTED) {
+        console.log('Location permission granted');
+      } else {
+        console.log('Location permission denied');
+      }
+    } catch (err) {
+      console.warn(err);
+    }
+  };
   const scanWifi = () => {
     requestPermissions();
     requestPermissions2();
@@ -77,19 +93,35 @@ const WifiScanner = () => {
         console.error(error);
       });
   };
-
+  const [ipAddress, setipAddress] = useState('');
   const connectToWifi = ssid => {
     WifiManager.connectToProtectedSSID(ssid, null, false, false)
       .then(() => {
         ToastAndroid.show('Connected to ' + ssid, ToastAndroid.SHORT);
+        console.log('Successfully connected to:', ssid);
+
+        // Get the Gateway IP Address
+        NetworkInfo.getGatewayIPAddress()
+          .then(ipAddress => {
+            setipAddress(ipAddress);
+            console.log('Camera IP Address:', ipAddress);
+            ToastAndroid.show('Camera IP: ' + ipAddress, ToastAndroid.SHORT);
+
+            // You can save or use the IP address here for further communication.
+          })
+          .catch(error => {
+            console.error('Error getting gateway IP:', error);
+          });
       })
       .catch(error => {
         console.error('Failed to connect to Wi-Fi:', error);
         ToastAndroid.show('Connection failed', ToastAndroid.SHORT);
       });
   };
+
   const [WIFIList, setWIFIList] = useState([]);
   const scanWiFiNetworks = () => {
+    requestPermissions3();
     WifiManager.loadWifiList().then(list => {
       console.log(list[0]);
       setWIFIList(list);
@@ -105,13 +137,23 @@ const WifiScanner = () => {
   return (
     <View>
       <Text>Wi-Fi Networks (Camera Only)</Text>
+      <Text>{ipAddress}</Text>
       <FlatList
         data={WIFIList}
         renderItem={renderItem}
         keyExtractor={item => item.BSSID}
         style={styles.flatList}
       />
+
       <Button title={'Scan Wi-Fi'} onPress={scanWiFiNetworks} />
+      <Button title={'Clear'} onPress={() => setWIFIList([])} />
+
+      <Button
+        title={'Connect To Camera'}
+        onPress={() => {
+          connectToCamera(ipAddress);
+        }}
+      />
     </View>
   );
 };
